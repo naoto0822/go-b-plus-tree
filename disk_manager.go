@@ -4,11 +4,7 @@ import (
 	"os"
 )
 
-const (
-	PageSize = 4096
-)
-
-// DiskManager...
+// DiskManager ...
 type DiskManager struct {
 	file       *os.File
 	nextPageID int64
@@ -93,6 +89,14 @@ func (d *DiskManager) Write(pageID int64, data []byte) error {
 		return err
 	}
 	return nil
+}
+
+// Allocate ...
+// TODO: handle metadata (next_free_page_id)
+func (d *DiskManager) Allocate() int64 {
+	allocPageID := d.nextPageID
+	d.nextPageID += 1
+	return allocPageID
 }
 
 // Close ...
