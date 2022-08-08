@@ -3,7 +3,8 @@ package bplustree
 type NodeType int
 
 const (
-	NodeTypeRoot NodeType = iota
+	NodeTypeUnknown NodeType = iota
+	NodeTypeRoot
 	NodeTypeInternal
 	NodeTypeLeaf
 )
