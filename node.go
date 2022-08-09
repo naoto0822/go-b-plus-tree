@@ -8,3 +8,10 @@ const (
 	NodeTypeInternal
 	NodeTypeLeaf
 )
+
+type Node interface {
+	GetNodeType() NodeType
+	IsRootNode() bool
+	IsInternalNode() bool
+	IsLeafNode() bool
+}

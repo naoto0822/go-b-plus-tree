@@ -4,6 +4,13 @@
 
 > TODO
 
+## Feature
+
+- [x] get
+- [x] put
+- [x] scan
+- [ ] delete
+
 ## Usage
 
 > TODO
@@ -11,14 +18,6 @@
 ## TODO
 
 ### Slotted Layout
-
-> TODO
-
-### Delete Record
-
-> TODO
-
-## Run
 
 > TODO
 
