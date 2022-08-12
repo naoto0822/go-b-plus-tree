@@ -27,7 +27,12 @@ func (b *BufferPoolManager) FetchPage(pageID int64) (Page, error) {
 		return Page{}, err
 	}
 
-	fetchedPage := NewPage(pageID, pageData)
+	var fetchedPage Page
+	err = fetchedPage.Deserialize(pageData)
+	if err != nil {
+		return Page{}, err
+	}
+
 	b.pool.Set(pageID, fetchedPage)
 	return fetchedPage, nil
 }
@@ -40,7 +45,12 @@ func (b *BufferPoolManager) AllocatePage() (Page, error) {
 }
 
 func (b *BufferPoolManager) Commit(page Page) error {
-	err := b.disk.Write(page.ID, page.Data)
+	bytes, err := page.Serialize()
+	if err != nil {
+		return err
+	}
+
+	err = b.disk.Write(page.ID, bytes)
 	if err != nil {
 		return err
 	}

@@ -7,22 +7,17 @@ import (
 )
 
 // Page represent Disk Page.
-// TODO: handling Metadata
 type Page struct {
 	ID      int64
 	PrevID  int64
 	NextID  int64
 	Records []KeyValue
-
-	Data []byte
 }
 
 // NewDefaultPage ...
 func NewDefaultPage(id int64) Page {
-	bytes := make([]byte, PageSize)
 	return Page{
-		ID:   id,
-		Data: bytes,
+		ID: id,
 	}
 }
 
@@ -63,6 +58,7 @@ func (p *Page) Update(index int, keyValue KeyValue) error {
 		return fmt.Errorf("page is full")
 	}
 
+	// TODO: repack...
 	p.Records[index] = keyValue
 	return nil
 }

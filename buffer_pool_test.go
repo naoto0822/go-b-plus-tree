@@ -18,8 +18,7 @@ func TestBufferPool_GetSet(t *testing.T) {
 		}
 
 		page1 := Page{
-			ID:   1,
-			Data: []byte(`page1`),
+			ID: 1,
 		}
 		pool.Set(1, page1)
 
@@ -28,8 +27,7 @@ func TestBufferPool_GetSet(t *testing.T) {
 			t.Errorf("failed to Get by 1, want: %v, got: %v", true, found)
 		}
 		want := Page{
-			ID:   1,
-			Data: []byte(`page1`),
+			ID: 1,
 		}
 		if !reflect.DeepEqual(got2, want) {
 			t.Errorf("failed to Get by 1, want: %v, got: %v", want, got2)
