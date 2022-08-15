@@ -18,7 +18,7 @@ type FindResult struct {
 	KeyValue KeyValue
 }
 
-// Finder represent common logic.
+// Finder represent common logic (like extend).
 type Finder struct{}
 
 func (f Finder) find(childrens []KeyValue, key []byte) *FindResult {
