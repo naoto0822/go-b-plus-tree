@@ -8,10 +8,11 @@ import (
 
 // Page represent Disk Page.
 type Page struct {
-	ID      int64
-	PrevID  int64
-	NextID  int64
-	Records []KeyValue
+	ID       int64
+	NodeType NodeType
+	PrevID   int64
+	NextID   int64
+	Records  []KeyValue
 }
 
 // NewDefaultPage ...

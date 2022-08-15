@@ -1,5 +1,9 @@
 package bplustree
 
+import (
+	"fmt"
+)
+
 type NodeType int
 
 const (
@@ -11,7 +15,15 @@ const (
 
 type Node interface {
 	GetNodeType() NodeType
-	IsRootNode() bool
-	IsInternalNode() bool
-	IsLeafNode() bool
+}
+
+func NewNode(page Page) (Node, error) {
+	switch page.NodeType {
+	case NodeTypeInternal:
+		return NewInternalNode(page), nil
+	case NodeTypeLeaf:
+		return NewLeafNode(page), nil
+	default:
+		return nil, fmt.Errorf("unknown node type")
+	}
 }
