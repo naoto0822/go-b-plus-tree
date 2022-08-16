@@ -3,7 +3,6 @@ package bplustree
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
 )
 
 // Page represent Disk Page.
@@ -16,52 +15,27 @@ type Page struct {
 }
 
 // NewDefaultPage ...
-func NewDefaultPage(id int64) Page {
+func NewDefaultPage(id int64, nodeType NodeType) Page {
 	return Page{
-		ID: id,
+		ID:       id,
+		NodeType: nodeType,
+		PrevID:   NoSiblingPageID,
+		NextID:   NoSiblingPageID,
 	}
 }
 
-func (p *Page) Insert(index int, keyValue KeyValue) error {
-	pageBytes, err := p.Serialize()
-	if err != nil {
-		return err
-	}
-	keyValueBytes, err := keyValue.Serialize()
-	if err != nil {
-		return err
-	}
-	// TODO: fuzzy...
-	if len(pageBytes)*len(keyValueBytes) > PageSize {
-		return fmt.Errorf("page is full")
+func (p *Page) InsertAt(index int64, keyValue KeyValue) {
+	if int64(len(p.Records)) == index {
+		p.Records = append(p.Records, keyValue)
+		return
 	}
 
+	p.Records = append(p.Records[:index+1], p.Records[index:]...)
 	p.Records[index] = keyValue
-	return nil
 }
 
-func (p *Page) Update(index int, keyValue KeyValue) error {
-	oldKeyValue := p.Records[index]
-	oldBytes, err := oldKeyValue.Serialize()
-	if err != nil {
-		return err
-	}
-	pageBytes, err := p.Serialize()
-	if err != nil {
-		return err
-	}
-	newBytes, err := keyValue.Serialize()
-	if err != nil {
-		return err
-	}
-	// TODO: fuzzy...
-	if len(pageBytes)+len(newBytes)-len(oldBytes) > PageSize {
-		return fmt.Errorf("page is full")
-	}
-
-	// TODO: repack...
+func (p *Page) UpdateAt(index int64, keyValue KeyValue) {
 	p.Records[index] = keyValue
-	return nil
 }
 
 func (p Page) Serialize() ([]byte, error) {

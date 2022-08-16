@@ -15,6 +15,8 @@ const (
 
 type Node interface {
 	GetNodeType() NodeType
+	GetMaxKey() []byte
+	GetPageID() int64
 }
 
 func NewNode(page Page) (Node, error) {

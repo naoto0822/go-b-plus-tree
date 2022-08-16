@@ -8,13 +8,14 @@ type FindResultType int
 
 const (
 	FindResultTypeUnknown FindResultType = iota
+	FindResultTypeNoRecord
 	FindResultTypeMatch
 	FindResultTypeFirstGraterThanMatch
 )
 
 type FindResult struct {
-	Index    int
 	Type     FindResultType
+	Index    int64
 	KeyValue KeyValue
 }
 
@@ -24,7 +25,7 @@ type Finder struct{}
 func (f Finder) find(childrens []KeyValue, key []byte) *FindResult {
 	if len(childrens) == 0 {
 		return &FindResult{
-			Type: FindResultTypeUnknown,
+			Type: FindResultTypeNoRecord,
 		}
 	}
 
@@ -35,24 +36,25 @@ func (f Finder) find(childrens []KeyValue, key []byte) *FindResult {
 		// Match
 		case 0:
 			return &FindResult{
-				Index:    idx,
 				Type:     FindResultTypeMatch,
+				Index:    int64(idx),
 				KeyValue: record,
 			}
+
 		// FirstGreaterThanMatch
 		case 1:
 			return &FindResult{
-				Index: idx,
 				Type:  FindResultTypeFirstGraterThanMatch,
-				// KeyValue
+				Index: int64(idx),
+				// KeyValue: ,
 			}
 		}
 	}
 
 	// TODO: last idx
 	return &FindResult{
-		Index: len(childrens),
 		Type:  FindResultTypeFirstGraterThanMatch,
-		// KeyValue
+		Index: int64(len(childrens)),
+		// KeyValue: ,
 	}
 }

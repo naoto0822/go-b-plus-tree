@@ -37,9 +37,9 @@ func (b *BufferPoolManager) FetchPage(pageID int64) (Page, error) {
 	return fetchedPage, nil
 }
 
-func (b *BufferPoolManager) AllocatePage() (Page, error) {
+func (b *BufferPoolManager) AllocatePage(nodeType NodeType) (Page, error) {
 	pageID := b.disk.Allocate()
-	page := NewDefaultPage(pageID)
+	page := NewDefaultPage(pageID, nodeType)
 	b.pool.Set(pageID, page)
 	return page, nil
 }
