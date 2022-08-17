@@ -6,10 +6,12 @@
 
 ## Feature
 
-- [x] get
-- [x] put
-- [x] scan
-- [ ] delete
+- [x] Get
+- [x] Insert
+- [ ] RangeScan
+- [ ] Delete
+- [x] Split Node
+- [ ] Merge Node
 
 ## Usage
 
