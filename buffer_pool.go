@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	defaultExpire   = 1 * time.Minute
-	defaultInterval = 1 * time.Minute
-
+	defaultExpire    = 1 * time.Minute
+	defaultInterval  = 1 * time.Minute
 	bufferPoolKeyFmt = "p_%d"
 )
 
@@ -33,17 +32,17 @@ func NewBufferPool() *BufferPool {
 }
 
 // Get ...
-func (b *BufferPool) Get(pageID int64) (Page, bool) {
+func (b *BufferPool) Get(pageID int64) (*Page, bool) {
 	key := b.getKey(pageID)
 	page, found := b.pool.Get(key)
 	if !found {
-		return Page{}, false
+		return nil, false
 	}
-	return page.(Page), true
+	return page.(*Page), true
 }
 
 // Set ...
-func (b *BufferPool) Set(pageID int64, page Page) {
+func (b *BufferPool) Set(pageID int64, page *Page) {
 	key := b.getKey(pageID)
 	b.pool.Set(key, page, defaultExpire)
 }

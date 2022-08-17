@@ -13,11 +13,11 @@ func TestBufferPool_GetSet(t *testing.T) {
 		if found != false {
 			t.Errorf("failed to Get by 1, want: %v, got: %v", false, found)
 		}
-		if !reflect.DeepEqual(got1, Page{}) {
-			t.Errorf("failed to Get by 1, want: %v, got: %v", Page{}, got1)
+		if got1 != nil {
+			t.Errorf("failed to Get by 1, want: %v, got: %v", nil, got1)
 		}
 
-		page1 := Page{
+		page1 := &Page{
 			ID: 1,
 		}
 		pool.Set(1, page1)
@@ -26,7 +26,7 @@ func TestBufferPool_GetSet(t *testing.T) {
 		if found != true {
 			t.Errorf("failed to Get by 1, want: %v, got: %v", true, found)
 		}
-		want := Page{
+		want := &Page{
 			ID: 1,
 		}
 		if !reflect.DeepEqual(got2, want) {
