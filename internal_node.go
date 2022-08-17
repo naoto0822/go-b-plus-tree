@@ -1,7 +1,6 @@
 package bplustree
 
 import (
-	"encoding/binary"
 	"fmt"
 	"strconv"
 )
@@ -9,12 +8,12 @@ import (
 var _ Node = (*InternalNode)(nil)
 
 type InternalNode struct {
-	Page Page
+	Page *Page
 
-	Finder
+	BaseNode
 }
 
-func NewInternalNode(page Page) *InternalNode {
+func NewInternalNode(page *Page) *InternalNode {
 	return &InternalNode{
 		Page: page,
 	}
@@ -33,8 +32,12 @@ func (i *InternalNode) GetPageID() int64 {
 	return i.Page.ID
 }
 
+func (i *InternalNode) GetRecords() []KeyValue {
+	return i.Page.Records
+}
+
 func (i *InternalNode) findChildPageID(key []byte) int64 {
-	findResult := i.Finder.find(i.Page.Records, key)
+	findResult := i.BaseNode.find(i.Page.Records, key)
 	switch findResult.Type {
 	case FindResultTypeMatch:
 		return decodePageID(findResult.KeyValue.Value)
@@ -58,7 +61,7 @@ func (i *InternalNode) Insert(key []byte, pageID int64) error {
 	value := encodePageID(pageID)
 	keyValue := NewKeyValue(key, value)
 
-	findResult := i.Finder.find(i.Page.Records, key)
+	findResult := i.BaseNode.find(i.Page.Records, key)
 	switch findResult.Type {
 	case FindResultTypeMatch:
 		i.Page.UpdateAt(findResult.Index, keyValue)
@@ -103,7 +106,8 @@ func encodePageID(src int64) []byte {
 }
 
 func decodePageID(src []byte) int64 {
-	// TODO: fuzzy decoding...
-	d := binary.BigEndian.Uint64(src)
-	return int64(d)
+	cast := string(src)
+	// TODO: error handling
+	dest, _ := strconv.ParseInt(cast, 10, 64)
+	return dest
 }

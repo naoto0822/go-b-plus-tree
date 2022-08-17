@@ -6,12 +6,12 @@ var _ Node = (*LeafNode)(nil)
 
 // LeafNode ...
 type LeafNode struct {
-	Page Page
+	Page *Page
 
-	Finder
+	BaseNode
 }
 
-func NewLeafNode(page Page) *LeafNode {
+func NewLeafNode(page *Page) *LeafNode {
 	return &LeafNode{
 		Page: page,
 	}
@@ -30,8 +30,12 @@ func (l *LeafNode) GetPageID() int64 {
 	return l.Page.ID
 }
 
+func (l *LeafNode) GetRecords() []KeyValue {
+	return l.Page.Records
+}
+
 func (l *LeafNode) Get(key []byte) (KeyValue, bool) {
-	findResult := l.Finder.find(l.Page.Records, key)
+	findResult := l.BaseNode.find(l.Page.Records, key)
 	switch findResult.Type {
 	case FindResultTypeMatch:
 		return findResult.KeyValue, true
@@ -43,7 +47,7 @@ func (l *LeafNode) Get(key []byte) (KeyValue, bool) {
 func (l *LeafNode) Insert(key, value []byte) error {
 	keyValue := NewKeyValue(key, value)
 
-	findResult := l.Finder.find(l.Page.Records, key)
+	findResult := l.BaseNode.find(l.Page.Records, key)
 	switch findResult.Type {
 	case FindResultTypeMatch:
 		l.Page.UpdateAt(findResult.Index, keyValue)
@@ -62,10 +66,6 @@ func (l *LeafNode) Insert(key, value []byte) error {
 	}
 }
 
-func (l *LeafNode) Split() {
-
-}
-
 func (l *LeafNode) Length() int {
 	return len(l.Page.Records)
 }
@@ -78,16 +78,6 @@ func (l *LeafNode) ByteSize() (int, error) {
 	return len(bytes), nil
 }
 
-//func (l *LeafNode) Put(key, value []byte) {
-//	keyValue := NewKeyValue(key, value)
-//	findResult := l.Finder.find(l.Page.Records, key)
-//	switch findResult.Type {
-//	case FindResultTypeMatch:
-//		l.Page.Update(findResult.Index, keyValue)
-//	case FindResultTypeFirstGraterThanMatch:
-//		l.Page.Insert(findResult.Index, keyValue)
-//	default:
-//		// empty
-//		l.Page.Insert(0, keyValue)
-//	}
+//func (l *LeafNode) String() string {
+//	return ""
 //}
