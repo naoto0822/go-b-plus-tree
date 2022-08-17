@@ -172,17 +172,30 @@ func TestPage_UpdateAt(t *testing.T) {
 func TestPage_SerializeAndDeserialize(t *testing.T) {
 	t.Run("Serialize And Deserialize", func(t *testing.T) {
 		p := Page{
-			ID: 1,
+			ID:       1,
+			NodeType: NodeTypeLeaf,
+			NextID:   2,
+			PrevID:   3,
 		}
 		bytes, err := p.Serialize()
 		if err != nil {
 			t.Errorf("failed to Page Serialize")
 		}
 
-		var pp Page
+		pp := &Page{}
 		err = pp.Deserialize(bytes)
 		if err != nil {
 			t.Errorf("failed to Page Deserialize")
+		}
+
+		want := &Page{
+			ID:       1,
+			NodeType: NodeTypeLeaf,
+			NextID:   2,
+			PrevID:   3,
+		}
+		if !reflect.DeepEqual(want, pp) {
+			t.Errorf("failed to Page Deserailize, want: %+v, got: %+v", want, pp)
 		}
 	})
 }
