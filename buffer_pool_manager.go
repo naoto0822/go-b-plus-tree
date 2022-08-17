@@ -3,12 +3,12 @@ package bplustree
 // BufferPoolManager ...
 type BufferPoolManager struct {
 	disk *DiskManager
-	pool *BufferPool
+	pool BufferPool
 }
 
 // NewBufferPoolManager ...
 func NewBufferPoolManager(disk *DiskManager) *BufferPoolManager {
-	pool := NewBufferPool()
+	pool := NewLruBufferPool()
 
 	return &BufferPoolManager{
 		disk: disk,
@@ -16,7 +16,7 @@ func NewBufferPoolManager(disk *DiskManager) *BufferPoolManager {
 	}
 }
 
-func (b *BufferPoolManager) FetchPage(pageID int64) (Page, error) {
+func (b *BufferPoolManager) FetchPage(pageID int64) (*Page, error) {
 	page, found := b.pool.Get(pageID)
 	if found {
 		return page, nil
@@ -24,27 +24,23 @@ func (b *BufferPoolManager) FetchPage(pageID int64) (Page, error) {
 
 	pageData, err := b.disk.Read(pageID)
 	if err != nil {
-		return Page{}, err
+		return nil, err
 	}
 
-	var fetchedPage Page
+	fetchedPage := &Page{}
 	err = fetchedPage.Deserialize(pageData)
 	if err != nil {
-		return Page{}, err
+		return nil, err
 	}
 
 	b.pool.Set(pageID, fetchedPage)
 	return fetchedPage, nil
 }
 
-func (b *BufferPoolManager) AllocatePage(nodeType NodeType) (Page, error) {
-	pageID := b.disk.Allocate()
-	page := NewDefaultPage(pageID, nodeType)
-	b.pool.Set(pageID, page)
-	return page, nil
-}
+func (b *BufferPoolManager) Flush(page *Page) error {
+	// TODO: need purge
+	b.pool.Set(page.ID, page)
 
-func (b *BufferPoolManager) Commit(page Page) error {
 	bytes, err := page.Serialize()
 	if err != nil {
 		return err
@@ -55,4 +51,12 @@ func (b *BufferPoolManager) Commit(page Page) error {
 		return err
 	}
 	return nil
+}
+
+func (b *BufferPoolManager) AllocatePage(nodeType NodeType) *Page {
+	pageID := b.disk.Allocate()
+	page := NewDefaultPage(pageID, nodeType)
+	// TODO necessary?
+	// b.pool.Set(pageID, page)
+	return page
 }

@@ -7,6 +7,13 @@ import (
 	gocache "github.com/patrickmn/go-cache"
 )
 
+type BufferPool interface {
+	Get(pageID int64) (*Page, bool)
+	Set(pageID int64, page *Page)
+}
+
+var _ BufferPool = (*LruBufferPool)(nil)
+
 const (
 	defaultExpire    = 1 * time.Minute
 	defaultInterval  = 1 * time.Minute
@@ -15,24 +22,24 @@ const (
 
 // TODO:
 // - gocache -> slice and page_table
-// - ClockSweep
+// - ClockSweep algorithm
 // - Frame -> Buffer -> Page
 
-// BufferPool ...
-type BufferPool struct {
+// LruBufferPool ...
+type LruBufferPool struct {
 	pool *gocache.Cache
 }
 
 // NewBufferPool ...
-func NewBufferPool() *BufferPool {
+func NewLruBufferPool() *LruBufferPool {
 	pool := gocache.New(defaultExpire, defaultInterval)
-	return &BufferPool{
+	return &LruBufferPool{
 		pool: pool,
 	}
 }
 
 // Get ...
-func (b *BufferPool) Get(pageID int64) (*Page, bool) {
+func (b *LruBufferPool) Get(pageID int64) (*Page, bool) {
 	key := b.getKey(pageID)
 	page, found := b.pool.Get(key)
 	if !found {
@@ -42,11 +49,11 @@ func (b *BufferPool) Get(pageID int64) (*Page, bool) {
 }
 
 // Set ...
-func (b *BufferPool) Set(pageID int64, page *Page) {
+func (b *LruBufferPool) Set(pageID int64, page *Page) {
 	key := b.getKey(pageID)
 	b.pool.Set(key, page, defaultExpire)
 }
 
-func (b *BufferPool) getKey(pageID int64) string {
+func (b *LruBufferPool) getKey(pageID int64) string {
 	return fmt.Sprintf(bufferPoolKeyFmt, pageID)
 }

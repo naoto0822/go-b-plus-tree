@@ -5,9 +5,9 @@ import (
 	"testing"
 )
 
-func TestBufferPool_GetSet(t *testing.T) {
+func TestLruBufferPool_GetSet(t *testing.T) {
 	t.Run("Get And Set", func(t *testing.T) {
-		pool := NewBufferPool()
+		pool := NewLruBufferPool()
 
 		got1, found := pool.Get(1)
 		if found != false {
