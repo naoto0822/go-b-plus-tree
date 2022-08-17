@@ -15,8 +15,8 @@ type Page struct {
 }
 
 // NewDefaultPage ...
-func NewDefaultPage(id int64, nodeType NodeType) Page {
-	return Page{
+func NewDefaultPage(id int64, nodeType NodeType) *Page {
+	return &Page{
 		ID:       id,
 		NodeType: nodeType,
 		PrevID:   NoSiblingPageID,
