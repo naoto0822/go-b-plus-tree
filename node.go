@@ -21,7 +21,7 @@ type Node interface {
 	GetRecords() []KeyValue
 }
 
-func NewNode(page Page) (Node, error) {
+func NewNode(page *Page) (Node, error) {
 	switch page.NodeType {
 	case NodeTypeInternal:
 		return NewInternalNode(page), nil
