@@ -7,36 +7,43 @@ import (
 
 var _ Node = (*InternalNode)(nil)
 
+// InternalNode ...
 type InternalNode struct {
 	Page *Page
 
 	BaseNode
 }
 
+// NewInternalNode ...
 func NewInternalNode(page *Page) *InternalNode {
 	return &InternalNode{
 		Page: page,
 	}
 }
 
+// GetNodeType implements Node
 func (i *InternalNode) GetNodeType() NodeType {
 	return NodeTypeInternal
 }
 
+// GetMaxKey implements Node
 func (i *InternalNode) GetMaxKey() []byte {
 	maxKeyValue := i.Page.Records[len(i.Page.Records)-1]
 	return maxKeyValue.Key
 }
 
+// GetPageID implements Node
 func (i *InternalNode) GetPageID() int64 {
 	return i.Page.ID
 }
 
+// GetRecords implements Node
 func (i *InternalNode) GetRecords() []KeyValue {
 	return i.Page.Records
 }
 
-func (i *InternalNode) findChildPageID(key []byte) (int64, bool) {
+// FindChildPageID ...
+func (i *InternalNode) FindChildPageID(key []byte) (int64, bool) {
 	findResult := i.BaseNode.find(i.Page.Records, key)
 	switch findResult.Type {
 	case FindResultTypeNoRecord:
@@ -52,7 +59,6 @@ func (i *InternalNode) findChildPageID(key []byte) (int64, bool) {
 	case FindResultTypeOver:
 		kv := i.Page.Records[len(i.Page.Records)-1]
 		return decodePageID(kv.Value), true
-		// return 0, false
 
 	default:
 		// TODO: error handling
@@ -60,6 +66,7 @@ func (i *InternalNode) findChildPageID(key []byte) (int64, bool) {
 	}
 }
 
+// Insert ...
 func (i *InternalNode) Insert(key []byte, pageID int64) error {
 	value := encodePageID(pageID)
 	keyValue := NewKeyValue(key, value)
@@ -88,6 +95,7 @@ func (i *InternalNode) Insert(key []byte, pageID int64) error {
 	}
 }
 
+// UpdateMaxKey ...
 func (i *InternalNode) UpdateMaxKey(key []byte, pageID int64) {
 	value := encodePageID(pageID)
 	keyValue := NewKeyValue(key, value)
@@ -95,25 +103,9 @@ func (i *InternalNode) UpdateMaxKey(key []byte, pageID int64) {
 	i.Page.UpdateAt(int64(index), keyValue)
 }
 
+// Length ...
 func (i *InternalNode) Length() int {
 	return len(i.Page.Records)
-}
-
-func (i *InternalNode) ByteSize() (int, error) {
-	bytes, err := i.Page.Serialize()
-	if err != nil {
-		return 0, err
-	}
-	return len(bytes), nil
-}
-
-func (i *InternalNode) firstChildPageID() int64 {
-	return decodePageID(i.Page.Records[0].Value)
-}
-
-func (i *InternalNode) lastChildPage() int64 {
-	lastIdx := len(i.Page.Records) - 1
-	return decodePageID(i.Page.Records[lastIdx].Value)
 }
 
 func encodePageID(src int64) []byte {
@@ -127,6 +119,7 @@ func decodePageID(src []byte) int64 {
 	return dest
 }
 
+// String implements Node
 func (i *InternalNode) String() string {
 	outFmt := "PageID: %d, \n Prev: %d, Next: %d, \n [%s]"
 	recordsOut := ""
