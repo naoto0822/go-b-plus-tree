@@ -14,16 +14,19 @@ type LeafNode struct {
 	BaseNode
 }
 
+// NewLeafNode ...
 func NewLeafNode(page *Page) *LeafNode {
 	return &LeafNode{
 		Page: page,
 	}
 }
 
+// GetNodeType implements Node
 func (l *LeafNode) GetNodeType() NodeType {
 	return NodeTypeLeaf
 }
 
+// GetMaxKey implements Node
 func (l *LeafNode) GetMaxKey() []byte {
 	if len(l.Page.Records) == 0 {
 		return nil
@@ -33,14 +36,17 @@ func (l *LeafNode) GetMaxKey() []byte {
 	return maxKeyValue.Key
 }
 
+// GetPageID implements Node
 func (l *LeafNode) GetPageID() int64 {
 	return l.Page.ID
 }
 
+// GetRecords implements Node
 func (l *LeafNode) GetRecords() []KeyValue {
 	return l.Page.Records
 }
 
+// Get ...
 func (l *LeafNode) Get(key []byte) (KeyValue, bool) {
 	findResult := l.BaseNode.find(l.Page.Records, key)
 	switch findResult.Type {
@@ -51,6 +57,7 @@ func (l *LeafNode) Get(key []byte) (KeyValue, bool) {
 	}
 }
 
+// Insert ...
 func (l *LeafNode) Insert(key, value []byte) error {
 	keyValue := NewKeyValue(key, value)
 
@@ -78,18 +85,12 @@ func (l *LeafNode) Insert(key, value []byte) error {
 	}
 }
 
+// Length ...
 func (l *LeafNode) Length() int {
 	return len(l.Page.Records)
 }
 
-func (l *LeafNode) ByteSize() (int, error) {
-	bytes, err := l.Page.Serialize()
-	if err != nil {
-		return 0, err
-	}
-	return len(bytes), nil
-}
-
+// IsOverMaxKey ...
 func (l *LeafNode) IsOverMaxKey(key []byte) bool {
 	maxKey := l.GetMaxKey()
 	switch bytes.Compare(maxKey, key) {
@@ -100,6 +101,7 @@ func (l *LeafNode) IsOverMaxKey(key []byte) bool {
 	}
 }
 
+// String implements Node
 func (l *LeafNode) String() string {
 	outFmt := "PageID: %d, \n Prev: %d, Next: %d, \n [%s]"
 	recordsOut := ""
