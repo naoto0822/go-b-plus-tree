@@ -12,23 +12,25 @@ const (
 	NoSiblingPageID = -1
 )
 
-// BTree ...
-type BTree struct {
+// Tree ...
+type Tree struct {
 	RootNode          Node
 	bufferPoolManager *BufferPoolManager
 }
 
-func NewBTree(bufferPoolManager *BufferPoolManager) *BTree {
+// NewTree ...
+func NewTree(bufferPoolManager *BufferPoolManager) *Tree {
 	rootPage := bufferPoolManager.AllocatePage(NodeTypeLeaf)
 	root := NewLeafNode(rootPage)
 
-	return &BTree{
+	return &Tree{
 		RootNode:          root,
 		bufferPoolManager: bufferPoolManager,
 	}
 }
 
-func (b *BTree) Get(key []byte) (KeyValue, error) {
+// Get ...
+func (b *Tree) Get(key []byte) (KeyValue, error) {
 	leafNode, err := b.findLeafNode(key, b.RootNode)
 	if err != nil {
 		return KeyValue{}, err
@@ -42,7 +44,8 @@ func (b *BTree) Get(key []byte) (KeyValue, error) {
 	return keyValue, nil
 }
 
-func (b *BTree) Insert(key, value []byte) error {
+// Insert ...
+func (b *Tree) Insert(key, value []byte) error {
 	insertResult, err := b.insertChildNode(b.RootNode, key, value)
 	if err != nil {
 		return err
@@ -68,7 +71,7 @@ func (b *BTree) Insert(key, value []byte) error {
 	return nil
 }
 
-func (b *BTree) insertChildNode(node Node, key []byte, value []byte) (*InsertResult, error) {
+func (b *Tree) insertChildNode(node Node, key []byte, value []byte) (*InsertResult, error) {
 	switch node.GetNodeType() {
 	case NodeTypeLeaf:
 		leafNode, ok := node.(*LeafNode)
@@ -222,7 +225,7 @@ func (b *BTree) insertChildNode(node Node, key []byte, value []byte) (*InsertRes
 	}
 }
 
-func (b *BTree) findLeafNode(key []byte, node Node) (*LeafNode, error) {
+func (b *Tree) findLeafNode(key []byte, node Node) (*LeafNode, error) {
 	// when LeafNode
 	if node.GetNodeType() == NodeTypeLeaf {
 		return node.(*LeafNode), nil
@@ -248,7 +251,8 @@ func (b *BTree) findLeafNode(key []byte, node Node) (*LeafNode, error) {
 	return b.findLeafNode(key, childNode)
 }
 
-func (b *BTree) Print() error {
+// Print ...
+func (b *Tree) Print() error {
 	nodePrinter := &NodePrinter{}
 	err := nodePrinter.Print(b.RootNode, b.bufferPoolManager)
 	if err != nil {

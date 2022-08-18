@@ -13,7 +13,7 @@ func main() {
 	defer disk.Close()
 
 	bufferPoolManager := bplustree.NewBufferPoolManager(disk)
-	tree := bplustree.NewBTree(bufferPoolManager)
+	tree := bplustree.NewTree(bufferPoolManager)
 
 	tree.Insert([]byte(`n`), []byte(`nnn`))
 	tree.Insert([]byte(`t`), []byte(`ttt`))
