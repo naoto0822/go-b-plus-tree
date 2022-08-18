@@ -12,6 +12,12 @@ func (n *NodePrinter) Print(node Node, bufferPoolManager *BufferPoolManager) err
 
 func (n *NodePrinter) print(node Node, bufferPoolManager *BufferPoolManager) error {
 	g := newGraph()
+
+	if node.GetNodeType() == NodeTypeLeaf {
+		g.addEdge(node.String(), "", "")
+		return nil
+	}
+
 	q := queue{}
 	q.push(node)
 
