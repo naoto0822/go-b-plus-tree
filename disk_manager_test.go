@@ -3,8 +3,6 @@ package bplustree
 import (
 	"os"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestDiskManager_CreateOrOpenFile(t *testing.T) {
@@ -79,7 +77,7 @@ func TestDiskManager_GetFileMetadata(t *testing.T) {
 	})
 }
 
-func new4ByteDiskManager(path string) (*DiskManager, error) {
+func new256ByteDiskManager(path string) (*DiskManager, error) {
 	f, err := CreateOrOpenFile(path)
 	if err != nil {
 		return nil, err
@@ -89,12 +87,12 @@ func new4ByteDiskManager(path string) (*DiskManager, error) {
 	if err != nil {
 		return nil, err
 	}
-	nextPageID := metadata.Size() / 4
+	nextPageID := metadata.Size() / 256
 
 	return &DiskManager{
 		file:       f,
 		nextPageID: nextPageID,
-		pageSize:   4,
+		pageSize:   256,
 	}, nil
 }
 
@@ -120,7 +118,7 @@ func TestDiskManager_Read(t *testing.T) {
 	}
 
 	path := "./test/test_read.btr"
-	disk, err := NewDiskManager(path)
+	disk, err := new256ByteDiskManager(path)
 	if err != nil {
 		t.Errorf("failed to NewDiskManager, err: %v", err)
 	}
@@ -172,7 +170,7 @@ func TestDiskManager_Write(t *testing.T) {
 
 	// Setup
 	path := "./test/test_write.btr"
-	disk, err := NewDiskManager(path)
+	disk, err := new256ByteDiskManager(path)
 	if err != nil {
 		t.Errorf("failed to NewDiskManager, err: %v", err)
 	}
@@ -187,8 +185,8 @@ func TestDiskManager_Write(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed to ReadAl, err: %v", err)
 			}
-			if diff := cmp.Diff(tt.want, string(got)); diff != "" {
-				t.Errorf("%s, diff: %s", tt.name, diff)
+			if tt.want != string(got) {
+				t.Errorf("%s, want: %+v, got: %+v", tt.name, tt.want, string(got))
 			}
 		})
 	}
@@ -203,7 +201,7 @@ func TestDiskManager_Write(t *testing.T) {
 func TestDiskManager_Allocate(t *testing.T) {
 	t.Run("Allocate and Allocate", func(t *testing.T) {
 		path := "./test/test_alloc.btr"
-		disk, err := NewDiskManager(path)
+		disk, err := new256ByteDiskManager(path)
 		if err != nil {
 			t.Errorf("failed to NewDiskManager, err: %v", err)
 		}
