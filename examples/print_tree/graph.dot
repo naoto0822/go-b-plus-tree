@@ -1,7 +1,17 @@
 digraph "" {
 		graph [fontname = "Ricty Bold"];
     	node [fontname = "Ricty Bold", label="\N"];
-    	edge [fontname = "Ricty Bold"];	"PageID: 6, 
+    	edge [fontname = "Ricty Bold"];	"PageID: 7, 
+ Prev: -1, Next: -1, 
+ [{ h: 6 }{ z: 2 }]" -> "PageID: 6, 
+ Prev: -1, Next: -1, 
+ [{ f: 3 }{ h: 4 }]"	[ label = "" ];
+	"PageID: 7, 
+ Prev: -1, Next: -1, 
+ [{ h: 6 }{ z: 2 }]" -> "PageID: 2, 
+ Prev: -1, Next: -1, 
+ [{ m: 1 }{ o: 5 }{ z: 0 }]"	[ label = "" ];
+	"PageID: 6, 
  Prev: -1, Next: -1, 
  [{ f: 3 }{ h: 4 }]" -> "PageID: 3, 
  Prev: -1, Next: 4, 
@@ -26,14 +36,4 @@ digraph "" {
  [{ m: 1 }{ o: 5 }{ z: 0 }]" -> "PageID: 0, 
  Prev: 5, Next: -1, 
  [{ p: ppp }{ r: rrr }{ t: ttt }{ z: zzz }]"	[ label = "" ];
-	"PageID: 7, 
- Prev: -1, Next: -1, 
- [{ h: 6 }{ z: 2 }]" -> "PageID: 6, 
- Prev: -1, Next: -1, 
- [{ f: 3 }{ h: 4 }]"	[ label = "" ];
-	"PageID: 7, 
- Prev: -1, Next: -1, 
- [{ h: 6 }{ z: 2 }]" -> "PageID: 2, 
- Prev: -1, Next: -1, 
- [{ m: 1 }{ o: 5 }{ z: 0 }]"	[ label = "" ];
 }
