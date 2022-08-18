@@ -19,6 +19,7 @@ type Node interface {
 	GetMaxKey() []byte
 	GetPageID() int64
 	GetRecords() []KeyValue
+	String() string
 }
 
 func NewNode(page *Page) (Node, error) {
@@ -39,6 +40,7 @@ const (
 	FindResultTypeNoRecord
 	FindResultTypeMatch
 	FindResultTypeFirstGraterThanMatch
+	FindResultTypeOver
 )
 
 type FindResult struct {
@@ -74,17 +76,14 @@ func (b BaseNode) find(childrens []KeyValue, key []byte) *FindResult {
 			return &FindResult{
 				Type:  FindResultTypeFirstGraterThanMatch,
 				Index: int64(idx),
-				// KeyValue: ,
+				// KeyValue: , TODO: record is maybe ok
 			}
 		}
 	}
 
-	// FirstGraterThanMatch
-	// last idx
+	// Over
 	return &FindResult{
-		Type:  FindResultTypeFirstGraterThanMatch,
-		Index: int64(len(childrens) - 1), // TODO: later
-		// KeyValue: ,
+		Type: FindResultTypeOver,
 	}
 }
 
@@ -97,9 +96,16 @@ const (
 )
 
 type InsertResult struct {
-	Type           InsertResultType
-	OverflowKey    []byte
-	OverflowPageID int64
-	Left           Node
-	Right          Node
+	Type         InsertResultType
+	Left         Node
+	Right        Node
+	IsOverMaxKey bool
+}
+
+func (i *InsertResult) OverflowKey() []byte {
+	return i.Left.GetMaxKey()
+}
+
+func (i *InsertResult) OverflowPageID() int64 {
+	return i.Left.GetPageID()
 }

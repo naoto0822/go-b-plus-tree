@@ -55,11 +55,10 @@ func TestBaseNode_Find(t *testing.T) {
 			want: &FindResult{
 				Type:  FindResultTypeFirstGraterThanMatch,
 				Index: 2,
-				// KeyValue
 			},
 		},
 		{
-			name: "first grater than match, last index",
+			name: "over",
 			args: args{
 				childrens: []KeyValue{
 					{Key: []byte(`a_key`), Value: []byte(`a_value`)},
@@ -69,9 +68,7 @@ func TestBaseNode_Find(t *testing.T) {
 				key: []byte(`z_key`),
 			},
 			want: &FindResult{
-				Type:  FindResultTypeFirstGraterThanMatch,
-				Index: 2,
-				// KeyValue
+				Type: FindResultTypeOver,
 			},
 		},
 	}
