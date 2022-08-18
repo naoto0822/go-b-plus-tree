@@ -3,37 +3,37 @@ digraph "" {
     	node [fontname = "Ricty Bold", label="\N"];
     	edge [fontname = "Ricty Bold"];	"PageID: 7, 
  Prev: -1, Next: -1, 
- [{ h: 6 }{ z: 2 }]" -> "PageID: 6, 
+ [{ K: h, V: 6 }{ K: z, V: 2 }]" -> "PageID: 6, 
  Prev: -1, Next: -1, 
- [{ f: 3 }{ h: 4 }]"	[ label = "" ];
+ [{ K: f, V: 3 }{ K: h, V: 4 }]"	[ label = "" ];
 	"PageID: 7, 
  Prev: -1, Next: -1, 
- [{ h: 6 }{ z: 2 }]" -> "PageID: 2, 
+ [{ K: h, V: 6 }{ K: z, V: 2 }]" -> "PageID: 2, 
  Prev: -1, Next: -1, 
- [{ m: 1 }{ o: 5 }{ z: 0 }]"	[ label = "" ];
+ [{ K: m, V: 1 }{ K: o, V: 5 }{ K: z, V: 0 }]"	[ label = "" ];
 	"PageID: 6, 
  Prev: -1, Next: -1, 
- [{ f: 3 }{ h: 4 }]" -> "PageID: 3, 
+ [{ K: f, V: 3 }{ K: h, V: 4 }]" -> "PageID: 3, 
  Prev: -1, Next: 4, 
- [{ e: eee }{ f: fff }]"	[ label = "" ];
+ [{ K: e, V: eee }{ K: f, V: fff }]"	[ label = "" ];
 	"PageID: 6, 
  Prev: -1, Next: -1, 
- [{ f: 3 }{ h: 4 }]" -> "PageID: 4, 
+ [{ K: f, V: 3 }{ K: h, V: 4 }]" -> "PageID: 4, 
  Prev: 3, Next: 1, 
- [{ g: ggg }{ h: hhh }]"	[ label = "" ];
+ [{ K: g, V: ggg }{ K: h, V: hhh }]"	[ label = "" ];
 	"PageID: 2, 
  Prev: -1, Next: -1, 
- [{ m: 1 }{ o: 5 }{ z: 0 }]" -> "PageID: 1, 
+ [{ K: m, V: 1 }{ K: o, V: 5 }{ K: z, V: 0 }]" -> "PageID: 1, 
  Prev: 4, Next: 5, 
- [{ i: iii }{ j: jjj }{ m: mmm }]"	[ label = "" ];
+ [{ K: i, V: iii }{ K: j, V: jjj }{ K: m, V: mmm }]"	[ label = "" ];
 	"PageID: 2, 
  Prev: -1, Next: -1, 
- [{ m: 1 }{ o: 5 }{ z: 0 }]" -> "PageID: 5, 
+ [{ K: m, V: 1 }{ K: o, V: 5 }{ K: z, V: 0 }]" -> "PageID: 5, 
  Prev: 1, Next: 0, 
- [{ n: nnn }{ o: ooo }]"	[ label = "" ];
+ [{ K: n, V: nnn }{ K: o, V: ooo }]"	[ label = "" ];
 	"PageID: 2, 
  Prev: -1, Next: -1, 
- [{ m: 1 }{ o: 5 }{ z: 0 }]" -> "PageID: 0, 
+ [{ K: m, V: 1 }{ K: o, V: 5 }{ K: z, V: 0 }]" -> "PageID: 0, 
  Prev: 5, Next: -1, 
- [{ p: ppp }{ r: rrr }{ t: ttt }{ z: zzz }]"	[ label = "" ];
+ [{ K: p, V: ppp }{ K: r, V: rrr }{ K: t, V: ttt }{ K: z, V: zzz }]"	[ label = "" ];
 }

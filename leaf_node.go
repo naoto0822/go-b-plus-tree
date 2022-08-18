@@ -106,7 +106,7 @@ func (l *LeafNode) String() string {
 	outFmt := "PageID: %d, \n Prev: %d, Next: %d, \n [%s]"
 	recordsOut := ""
 	for _, r := range l.Page.Records {
-		r := fmt.Sprintf("{ %s: %s }", string(r.Key), string(r.Value))
+		r := fmt.Sprintf("{ K: %s, V: %s }", string(r.Key), string(r.Value))
 		recordsOut += r
 	}
 	return fmt.Sprintf(outFmt, l.Page.ID, l.Page.PrevID, l.Page.NextID, recordsOut)
