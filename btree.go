@@ -142,7 +142,7 @@ func (b *BTree) insertChildNode(node Node, key []byte, value []byte) (*InsertRes
 			return nil, fmt.Errorf("TODO")
 		}
 
-		childPageID, found := internalNode.findChildPageID(key)
+		childPageID, found := internalNode.FindChildPageID(key)
 		if !found {
 			return nil, fmt.Errorf("TODO")
 		}
@@ -233,7 +233,7 @@ func (b *BTree) findLeafNode(key []byte, node Node) (*LeafNode, error) {
 	if !ok {
 		return nil, fmt.Errorf("not leafnode")
 	}
-	childPageID, found := internalNode.findChildPageID(key)
+	childPageID, found := internalNode.FindChildPageID(key)
 	if !found {
 		return nil, fmt.Errorf("not found LeafNode")
 	}
