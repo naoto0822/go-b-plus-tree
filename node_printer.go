@@ -1,64 +1,60 @@
 package bplustree
 
 import (
-	"bytes"
 	"fmt"
-
-	graphviz "github.com/goccy/go-graphviz"
 )
 
 type NodePrinter struct{}
 
 func (n *NodePrinter) Print(node Node, bufferPoolManager *BufferPoolManager) error {
-	return goccyPrint(node, bufferPoolManager)
+	return n.print(node, bufferPoolManager)
 }
 
-func originalPrint(node Node, bufferPoolManager *BufferPoolManager) error {
+func (n *NodePrinter) print(node Node, bufferPoolManager *BufferPoolManager) error {
 	g := newGraph()
+	q := queue{}
+	q.push(node)
 
-	q := Queue{}
-	q.Push(node)
-
-	for !q.Empty() {
-		pop, err := q.Pop()
+	for !q.empty() {
+		parent, err := q.pop()
 		if err != nil {
 			return err
 		}
 
-		switch pop.GetNodeType() {
+		switch parent.GetNodeType() {
 		case NodeTypeInternal:
-			for _, r := range pop.GetRecords() {
+			for _, r := range parent.GetRecords() {
 				pageID := decodePageID(r.Value)
 				page, err := bufferPoolManager.FetchPage(pageID)
 				if err != nil {
 					return err
 				}
-				node, err := NewNode(page)
+				child, err := NewNode(page)
 				if err != nil {
 					return err
 				}
 
-				g.addEdge(pop.String(), node.String(), "")
-
-				q.Push(node)
+				g.addEdge(parent.String(), child.String(), "")
+				q.push(child)
 			}
+
 		case NodeTypeLeaf:
 			continue
+
 		default:
-			return fmt.Errorf("TODO")
+			return fmt.Errorf("Unknown NodeType: %v", parent.GetNodeType())
 		}
 	}
 
 	fmt.Println(g)
-
 	return nil
-
 }
 
 type edge struct {
 	node  string
 	label string
 }
+
 type graph struct {
 	nodes map[string][]edge
 }
@@ -93,82 +89,15 @@ func (g *graph) String() string {
 	return out
 }
 
-func goccyPrint(node Node, bufferPoolManager *BufferPoolManager) error {
-	g := graphviz.New()
-	graph, err := g.Graph()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		graph.Close()
-		g.Close()
-	}()
-
-	q := Queue{}
-	q.Push(node)
-
-	dedup := make(map[int64]struct{})
-
-	for !q.Empty() {
-		pop, err := q.Pop()
-		if err != nil {
-			return err
-		}
-
-		_, ok := dedup[pop.GetPageID()]
-		if ok {
-			continue
-		}
-
-		parent, _ := graph.CreateNode(pop.String())
-		dedup[pop.GetPageID()] = struct{}{}
-
-		switch pop.GetNodeType() {
-		case NodeTypeInternal:
-			for _, r := range pop.GetRecords() {
-				pageID := decodePageID(r.Value)
-				page, err := bufferPoolManager.FetchPage(pageID)
-				if err != nil {
-					return err
-				}
-				node, err := NewNode(page)
-				if err != nil {
-					return err
-				}
-				child, _ := graph.CreateNode(node.String())
-				graph.CreateEdge("hoge", parent, child)
-
-				q.Push(node)
-			}
-		case NodeTypeLeaf:
-			continue
-		default:
-			return fmt.Errorf("TODO")
-		}
-	}
-
-	if err := g.RenderFilename(graph, graphviz.JPG, "./graph.png"); err != nil {
-		return err
-	}
-
-	var buf bytes.Buffer
-	if err := g.Render(graph, "dot", &buf); err != nil {
-		return err
-	}
-	fmt.Println(buf.String())
-
-	return nil
-}
-
-type Queue struct {
+type queue struct {
 	Data []Node
 }
 
-func (q *Queue) Push(node Node) {
+func (q *queue) push(node Node) {
 	q.Data = append(q.Data, node)
 }
 
-func (q *Queue) Pop() (Node, error) {
+func (q *queue) pop() (Node, error) {
 	if len(q.Data) == 0 {
 		return nil, fmt.Errorf("Data is emptyr")
 	}
@@ -181,6 +110,6 @@ func (q *Queue) Pop() (Node, error) {
 	return pop, nil
 }
 
-func (q *Queue) Empty() bool {
+func (q *queue) empty() bool {
 	return len(q.Data) == 0
 }
