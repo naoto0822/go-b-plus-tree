@@ -4,6 +4,14 @@ import (
 	"fmt"
 )
 
+const (
+	MaxOrder = 5
+
+	PageSize = 512
+
+	NoSiblingPageID = -1
+)
+
 // BTree ...
 type BTree struct {
 	RootNode          Node
@@ -11,8 +19,8 @@ type BTree struct {
 }
 
 func NewBTree(bufferPoolManager *BufferPoolManager) *BTree {
-	// TODO: fuzzy...
-	root := &LeafNode{}
+	rootPage := bufferPoolManager.AllocatePage(NodeTypeLeaf)
+	root := NewLeafNode(rootPage)
 
 	return &BTree{
 		RootNode:          root,
@@ -28,7 +36,7 @@ func (b *BTree) Get(key []byte) (KeyValue, error) {
 
 	keyValue, found := leafNode.Get(key)
 	if !found {
-		return KeyValue{}, err
+		return KeyValue{}, fmt.Errorf("TODO")
 	}
 
 	return keyValue, nil
@@ -68,6 +76,8 @@ func (b *BTree) insertChildNode(node Node, key []byte, value []byte) (*InsertRes
 			return nil, fmt.Errorf("TODO")
 		}
 
+		isOverMaxKey := leafNode.IsOverMaxKey(key)
+
 		err := leafNode.Insert(key, value)
 		if err != nil {
 			return nil, err
@@ -78,46 +88,51 @@ func (b *BTree) insertChildNode(node Node, key []byte, value []byte) (*InsertRes
 			newLeafNode := NewLeafNode(newPage)
 
 			// split records
+			// leafNode
+			// ->
+			// (newLeafNode, leafNode)
 			splitPont := leafNode.Length() / 2
-			leftRecords := leafNode.Page.Records[:splitPont]
-			rightRecords := leafNode.Page.Records[splitPont:]
-			leafNode.Page.Records = leftRecords
-			newLeafNode.Page.Records = rightRecords
+
+			leftRecords := make([]KeyValue, splitPont)
+			copy(leftRecords, leafNode.Page.Records[:splitPont])
+			rightRecords := make([]KeyValue, leafNode.Length()-splitPont)
+			copy(rightRecords, leafNode.Page.Records[splitPont:])
+			newLeafNode.Page.Records = leftRecords
+			leafNode.Page.Records = rightRecords
 
 			// prev <-> leafNode <-> next
 			// ->
-			// prev <-> leafNode <-> newLeafNode <-> next
-			nextPageID := leafNode.Page.NextID
-			leafNode.Page.NextID = newLeafNode.Page.ID
-			newLeafNode.Page.PrevID = leafNode.Page.ID
-			if nextPageID != NoSiblingPageID {
-				nextPage, err := b.bufferPoolManager.FetchPage(nextPageID)
+			// prev <-> newLeafNode <-> leafNode <-> next
+			prevPageID := leafNode.Page.PrevID
+			newLeafNode.Page.NextID = leafNode.Page.ID
+			leafNode.Page.PrevID = newLeafNode.Page.ID
+			if prevPageID != NoSiblingPageID {
+				prevPage, err := b.bufferPoolManager.FetchPage(prevPageID)
 				if err != nil {
 					return nil, err
 				}
-				nextNode := NewLeafNode(nextPage)
-				newLeafNode.Page.NextID = nextNode.Page.ID
-				nextNode.Page.PrevID = newLeafNode.Page.ID
-
-				b.bufferPoolManager.Flush(nextNode.Page)
+				prevNode := NewLeafNode(prevPage)
+				prevNode.Page.NextID = newLeafNode.Page.ID
+				newLeafNode.Page.PrevID = prevNode.Page.ID
+				b.bufferPoolManager.Flush(prevNode.Page)
 			}
-			b.bufferPoolManager.Flush(leafNode.Page)
-			b.bufferPoolManager.Flush(newLeafNode.Page)
 
-			overflowKeyValue := leafNode.Page.Records[len(leafNode.Page.Records)-1]
+			b.bufferPoolManager.Flush(newLeafNode.Page)
+			b.bufferPoolManager.Flush(leafNode.Page)
+
 			return &InsertResult{
-				Type:           InsertResultSplit,
-				OverflowKey:    overflowKeyValue.Key,
-				OverflowPageID: leafNode.Page.ID,
-				Left:           leafNode,
-				Right:          newLeafNode,
+				Type:         InsertResultSplit,
+				Left:         newLeafNode,
+				Right:        leafNode,
+				IsOverMaxKey: isOverMaxKey,
 			}, nil
 
 		} else {
 			b.bufferPoolManager.Flush(leafNode.Page)
 
 			return &InsertResult{
-				Type: InsertResultTypeFit,
+				Type:         InsertResultTypeFit,
+				IsOverMaxKey: isOverMaxKey,
 			}, nil
 		}
 
@@ -127,7 +142,11 @@ func (b *BTree) insertChildNode(node Node, key []byte, value []byte) (*InsertRes
 			return nil, fmt.Errorf("TODO")
 		}
 
-		childPageID := internalNode.findChildPageID(key)
+		childPageID, found := internalNode.findChildPageID(key)
+		if !found {
+			return nil, fmt.Errorf("TODO")
+		}
+
 		childPage, err := b.bufferPoolManager.FetchPage(childPageID)
 		if err != nil {
 			return nil, err
@@ -142,8 +161,14 @@ func (b *BTree) insertChildNode(node Node, key []byte, value []byte) (*InsertRes
 			return nil, err
 		}
 
+		isOverMaxKey := false
+		if insertResult.IsOverMaxKey {
+			isOverMaxKey = true
+			internalNode.UpdateMaxKey(childNode.GetMaxKey(), childNode.GetPageID())
+		}
+
 		if insertResult.Type == InsertResultSplit {
-			err := internalNode.Insert(insertResult.OverflowKey, insertResult.OverflowPageID)
+			err := internalNode.Insert(insertResult.OverflowKey(), insertResult.OverflowPageID())
 			if err != nil {
 				return nil, err
 			}
@@ -153,34 +178,42 @@ func (b *BTree) insertChildNode(node Node, key []byte, value []byte) (*InsertRes
 				newInternalNode := NewInternalNode(newPage)
 
 				// split records
+				// internalNode
+				// ->
+				// (newInternalNode, internalNode)
 				splitPont := internalNode.Length() / 2
-				leftRecords := internalNode.Page.Records[:splitPont]
-				rightRecords := internalNode.Page.Records[splitPont:]
-				internalNode.Page.Records = leftRecords
-				newInternalNode.Page.Records = rightRecords
 
-				b.bufferPoolManager.Flush(internalNode.Page)
+				leftRecords := make([]KeyValue, splitPont)
+				copy(leftRecords, internalNode.Page.Records[:splitPont])
+				rightRecords := make([]KeyValue, internalNode.Length()-splitPont)
+				copy(rightRecords, internalNode.Page.Records[splitPont:])
+				newInternalNode.Page.Records = leftRecords
+				internalNode.Page.Records = rightRecords
+
 				b.bufferPoolManager.Flush(newInternalNode.Page)
+				b.bufferPoolManager.Flush(internalNode.Page)
 
-				overflowKeyValue := internalNode.Page.Records[len(internalNode.Page.Records)-1]
 				return &InsertResult{
-					Type:           InsertResultSplit,
-					OverflowKey:    overflowKeyValue.Key,
-					OverflowPageID: internalNode.Page.ID,
-					Left:           internalNode,
-					Right:          newInternalNode,
+					Type:         InsertResultSplit,
+					Left:         newInternalNode,
+					Right:        internalNode,
+					IsOverMaxKey: isOverMaxKey,
 				}, nil
 
 			} else {
 				b.bufferPoolManager.Flush(internalNode.Page)
 
 				return &InsertResult{
-					Type: InsertResultTypeFit,
+					Type:         InsertResultTypeFit,
+					IsOverMaxKey: isOverMaxKey,
 				}, nil
 			}
 		} else {
+			b.bufferPoolManager.Flush(internalNode.Page)
+
 			return &InsertResult{
-				Type: InsertResultTypeFit,
+				Type:         InsertResultTypeFit,
+				IsOverMaxKey: isOverMaxKey,
 			}, nil
 		}
 
@@ -200,7 +233,10 @@ func (b *BTree) findLeafNode(key []byte, node Node) (*LeafNode, error) {
 	if !ok {
 		return nil, fmt.Errorf("not leafnode")
 	}
-	childPageID := internalNode.findChildPageID(key)
+	childPageID, found := internalNode.findChildPageID(key)
+	if !found {
+		return nil, fmt.Errorf("not found LeafNode")
+	}
 	page, err := b.bufferPoolManager.FetchPage(childPageID)
 	if err != nil {
 		return nil, err
