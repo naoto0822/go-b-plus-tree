@@ -1,8 +1,11 @@
 dep:
 	brew install graphviz
 
-genpng:
+genpng: clean
 	go run main.go > graph.dot
 	dot -Tpng -Gdpi=300 graph.dot > graph.png
 
-.PHONY: genpng dep
+clean:
+	rm graph.dot graph.png test.btr
+
+.PHONY: genpng dep clean
