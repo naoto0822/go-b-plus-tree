@@ -14,6 +14,7 @@ const (
 	NodeTypeLeaf
 )
 
+// Node ...
 type Node interface {
 	GetNodeType() NodeType
 	GetMaxKey() []byte
@@ -22,6 +23,7 @@ type Node interface {
 	String() string
 }
 
+// NewNode ...
 func NewNode(page *Page) (Node, error) {
 	switch page.NodeType {
 	case NodeTypeInternal:
@@ -43,12 +45,14 @@ const (
 	FindResultTypeOver
 )
 
+// FindResult ...
 type FindResult struct {
 	Type     FindResultType
 	Index    int64
 	KeyValue KeyValue
 }
 
+// BaseNode ...
 type BaseNode struct{}
 
 func (b BaseNode) find(childrens []KeyValue, key []byte) *FindResult {
@@ -95,6 +99,7 @@ const (
 	InsertResultSplit
 )
 
+// InsertResult ...
 type InsertResult struct {
 	Type         InsertResultType
 	Left         Node
@@ -102,10 +107,12 @@ type InsertResult struct {
 	IsOverMaxKey bool
 }
 
-func (i *InsertResult) OverflowKey() []byte {
+// GetOverflowKey ...
+func (i *InsertResult) GetOverflowKey() []byte {
 	return i.Left.GetMaxKey()
 }
 
-func (i *InsertResult) OverflowPageID() int64 {
+// GetOverflowPageID ...
+func (i *InsertResult) GetOverflowPageID() int64 {
 	return i.Left.GetPageID()
 }

@@ -92,7 +92,6 @@ func (d *DiskManager) Write(pageID int64, data []byte) error {
 }
 
 // Allocate ...
-// TODO: handle metadata (next_free_page_id)
 func (d *DiskManager) Allocate() int64 {
 	allocPageID := d.nextPageID
 	d.nextPageID += 1

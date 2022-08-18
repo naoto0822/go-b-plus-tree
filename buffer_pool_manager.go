@@ -16,6 +16,7 @@ func NewBufferPoolManager(disk *DiskManager) *BufferPoolManager {
 	}
 }
 
+// FetchPage ...
 func (b *BufferPoolManager) FetchPage(pageID int64) (*Page, error) {
 	page, found := b.pool.Get(pageID)
 	if found {
@@ -37,6 +38,7 @@ func (b *BufferPoolManager) FetchPage(pageID int64) (*Page, error) {
 	return fetchedPage, nil
 }
 
+// Flush ...
 func (b *BufferPoolManager) Flush(page *Page) error {
 	// TODO: need purge
 	b.pool.Set(page.ID, page)
@@ -53,6 +55,7 @@ func (b *BufferPoolManager) Flush(page *Page) error {
 	return nil
 }
 
+// AllocatePage ...
 func (b *BufferPoolManager) AllocatePage(nodeType NodeType) *Page {
 	pageID := b.disk.Allocate()
 	page := NewDefaultPage(pageID, nodeType)

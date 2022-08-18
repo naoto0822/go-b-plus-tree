@@ -168,7 +168,7 @@ func (b *BTree) insertChildNode(node Node, key []byte, value []byte) (*InsertRes
 		}
 
 		if insertResult.Type == InsertResultSplit {
-			err := internalNode.Insert(insertResult.OverflowKey(), insertResult.OverflowPageID())
+			err := internalNode.Insert(insertResult.GetOverflowKey(), insertResult.GetOverflowPageID())
 			if err != nil {
 				return nil, err
 			}
