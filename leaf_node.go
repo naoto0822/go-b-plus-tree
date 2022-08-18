@@ -101,10 +101,10 @@ func (l *LeafNode) IsOverMaxKey(key []byte) bool {
 }
 
 func (l *LeafNode) String() string {
-	outFmt := "PageID: %d, \n Prev: %d, Next: %d, \n Records: [%s]"
+	outFmt := "PageID: %d, \n Prev: %d, Next: %d, \n [%s]"
 	recordsOut := ""
 	for _, r := range l.Page.Records {
-		r := fmt.Sprintf("{Key %s: Val %s}", string(r.Key), string(r.Value))
+		r := fmt.Sprintf("{ %s: %s }", string(r.Key), string(r.Value))
 		recordsOut += r
 	}
 	return fmt.Sprintf(outFmt, l.Page.ID, l.Page.PrevID, l.Page.NextID, recordsOut)
