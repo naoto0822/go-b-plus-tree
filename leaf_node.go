@@ -1,6 +1,9 @@
 package bplustree
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 var _ Node = (*LeafNode)(nil)
 
@@ -22,6 +25,10 @@ func (l *LeafNode) GetNodeType() NodeType {
 }
 
 func (l *LeafNode) GetMaxKey() []byte {
+	if len(l.Page.Records) == 0 {
+		return nil
+	}
+
 	maxKeyValue := l.Page.Records[len(l.Page.Records)-1]
 	return maxKeyValue.Key
 }
@@ -49,6 +56,10 @@ func (l *LeafNode) Insert(key, value []byte) error {
 
 	findResult := l.BaseNode.find(l.Page.Records, key)
 	switch findResult.Type {
+	case FindResultTypeNoRecord:
+		l.Page.InsertAt(0, keyValue)
+		return nil
+
 	case FindResultTypeMatch:
 		l.Page.UpdateAt(findResult.Index, keyValue)
 		return nil
@@ -57,8 +68,9 @@ func (l *LeafNode) Insert(key, value []byte) error {
 		l.Page.InsertAt(findResult.Index, keyValue)
 		return nil
 
-	case FindResultTypeNoRecord:
-		l.Page.InsertAt(0, keyValue)
+	case FindResultTypeOver:
+		index := len(l.Page.Records)
+		l.Page.InsertAt(int64(index), keyValue)
 		return nil
 
 	default:
@@ -78,6 +90,22 @@ func (l *LeafNode) ByteSize() (int, error) {
 	return len(bytes), nil
 }
 
-//func (l *LeafNode) String() string {
-//	return ""
-//}
+func (l *LeafNode) IsOverMaxKey(key []byte) bool {
+	maxKey := l.GetMaxKey()
+	switch bytes.Compare(maxKey, key) {
+	case -1:
+		return true
+	default:
+		return false
+	}
+}
+
+func (l *LeafNode) String() string {
+	outFmt := "PageID: %d, \n Prev: %d, Next: %d, \n Records: [%s]"
+	recordsOut := ""
+	for _, r := range l.Page.Records {
+		r := fmt.Sprintf("{Key %s: Val %s}", string(r.Key), string(r.Value))
+		recordsOut += r
+	}
+	return fmt.Sprintf(outFmt, l.Page.ID, l.Page.PrevID, l.Page.NextID, recordsOut)
+}
