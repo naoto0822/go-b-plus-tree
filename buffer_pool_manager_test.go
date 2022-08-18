@@ -30,12 +30,23 @@ func TestBufferPoolManager_FetchPageAndFlush(t *testing.T) {
 		}
 
 		// 1. Write
-		p1 := &Page{
+		p0 := &Page{
 			ID:       0,
 			NodeType: NodeTypeLeaf,
 			PrevID:   NoSiblingPageID,
 			NextID:   NoSiblingPageID,
-			Records:  nil,
+			Records:  []KeyValue{{[]byte(`a`), []byte(`b`)}},
+		}
+		err = bufferPoolManager.Flush(p0)
+		if err != nil {
+			t.Errorf("failed to Flush, err: %+v", err)
+		}
+		p1 := &Page{
+			ID:       1,
+			NodeType: NodeTypeLeaf,
+			PrevID:   NoSiblingPageID,
+			NextID:   NoSiblingPageID,
+			Records:  []KeyValue{{[]byte(`a_k`), []byte(`a_v`)}, {[]byte(`b_k`), []byte(`b_v`)}},
 		}
 		err = bufferPoolManager.Flush(p1)
 		if err != nil {
@@ -44,13 +55,13 @@ func TestBufferPoolManager_FetchPageAndFlush(t *testing.T) {
 
 		// 2. Fetch (Exists ID)
 		want1 := &Page{
-			ID:       0,
+			ID:       1,
 			NodeType: NodeTypeLeaf,
 			PrevID:   NoSiblingPageID,
 			NextID:   NoSiblingPageID,
-			Records:  nil,
+			Records:  []KeyValue{{[]byte(`a_k`), []byte(`a_v`)}, {[]byte(`b_k`), []byte(`b_v`)}},
 		}
-		got1, err := bufferPoolManager.FetchPage(0)
+		got1, err := bufferPoolManager.FetchPage(1)
 		if err != nil {
 			t.Errorf("failed to FetchPage, err: %+v", err)
 		}
