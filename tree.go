@@ -87,37 +87,9 @@ func (b *Tree) insertChildNode(node Node, key []byte, value []byte) (*InsertResu
 		}
 
 		if leafNode.Length() >= MaxOrder {
-			newPage := b.bufferPoolManager.AllocatePage(NodeTypeLeaf)
-			newLeafNode := NewLeafNode(newPage)
-
-			// split records
-			// leafNode
-			// ->
-			// (newLeafNode, leafNode)
-			splitPont := leafNode.Length() / 2
-
-			leftRecords := make([]KeyValue, splitPont)
-			copy(leftRecords, leafNode.Page.Records[:splitPont])
-			rightRecords := make([]KeyValue, leafNode.Length()-splitPont)
-			copy(rightRecords, leafNode.Page.Records[splitPont:])
-			newLeafNode.Page.Records = leftRecords
-			leafNode.Page.Records = rightRecords
-
-			// prev <-> leafNode <-> next
-			// ->
-			// prev <-> newLeafNode <-> leafNode <-> next
-			prevPageID := leafNode.Page.PrevID
-			newLeafNode.Page.NextID = leafNode.Page.ID
-			leafNode.Page.PrevID = newLeafNode.Page.ID
-			if prevPageID != NoSiblingPageID {
-				prevPage, err := b.bufferPoolManager.FetchPage(prevPageID)
-				if err != nil {
-					return nil, err
-				}
-				prevNode := NewLeafNode(prevPage)
-				prevNode.Page.NextID = newLeafNode.Page.ID
-				newLeafNode.Page.PrevID = prevNode.Page.ID
-				b.bufferPoolManager.Flush(prevNode.Page)
+			newLeafNode, err := b.splitLeafNode(leafNode)
+			if err != nil {
+				return nil, err
 			}
 
 			b.bufferPoolManager.Flush(newLeafNode.Page)
@@ -154,6 +126,7 @@ func (b *Tree) insertChildNode(node Node, key []byte, value []byte) (*InsertResu
 		if err != nil {
 			return nil, err
 		}
+
 		childNode, err := NewNode(childPage)
 		if err != nil {
 			return nil, err
@@ -177,21 +150,10 @@ func (b *Tree) insertChildNode(node Node, key []byte, value []byte) (*InsertResu
 			}
 
 			if internalNode.Length() >= MaxOrder {
-				newPage := b.bufferPoolManager.AllocatePage(NodeTypeInternal)
-				newInternalNode := NewInternalNode(newPage)
-
-				// split records
-				// internalNode
-				// ->
-				// (newInternalNode, internalNode)
-				splitPont := internalNode.Length() / 2
-
-				leftRecords := make([]KeyValue, splitPont)
-				copy(leftRecords, internalNode.Page.Records[:splitPont])
-				rightRecords := make([]KeyValue, internalNode.Length()-splitPont)
-				copy(rightRecords, internalNode.Page.Records[splitPont:])
-				newInternalNode.Page.Records = leftRecords
-				internalNode.Page.Records = rightRecords
+				newInternalNode, err := b.splitInternalNode(internalNode)
+				if err != nil {
+					return nil, err
+				}
 
 				b.bufferPoolManager.Flush(newInternalNode.Page)
 				b.bufferPoolManager.Flush(internalNode.Page)
@@ -211,6 +173,7 @@ func (b *Tree) insertChildNode(node Node, key []byte, value []byte) (*InsertResu
 					IsOverMaxKey: isOverMaxKey,
 				}, nil
 			}
+
 		} else {
 			b.bufferPoolManager.Flush(internalNode.Page)
 
@@ -223,6 +186,63 @@ func (b *Tree) insertChildNode(node Node, key []byte, value []byte) (*InsertResu
 	default:
 		return nil, fmt.Errorf("unknown node type")
 	}
+}
+
+func (t *Tree) splitInternalNode(internalNode *InternalNode) (*InternalNode, error) {
+	newPage := t.bufferPoolManager.AllocatePage(NodeTypeInternal)
+	newInternalNode := NewInternalNode(newPage)
+
+	// split records
+	// internalNode
+	// ->
+	// (newInternalNode, internalNode)
+	splitPont := internalNode.Length() / 2
+
+	leftRecords := make([]KeyValue, splitPont)
+	copy(leftRecords, internalNode.Page.Records[:splitPont])
+	rightRecords := make([]KeyValue, internalNode.Length()-splitPont)
+	copy(rightRecords, internalNode.Page.Records[splitPont:])
+	newInternalNode.Page.Records = leftRecords
+	internalNode.Page.Records = rightRecords
+
+	return newInternalNode, nil
+}
+
+func (t *Tree) splitLeafNode(leafNode *LeafNode) (*LeafNode, error) {
+	newPage := t.bufferPoolManager.AllocatePage(NodeTypeLeaf)
+	newLeafNode := NewLeafNode(newPage)
+
+	// split records
+	// leafNode
+	// ->
+	// (newLeafNode, leafNode)
+	splitPont := leafNode.Length() / 2
+
+	leftRecords := make([]KeyValue, splitPont)
+	copy(leftRecords, leafNode.Page.Records[:splitPont])
+	rightRecords := make([]KeyValue, leafNode.Length()-splitPont)
+	copy(rightRecords, leafNode.Page.Records[splitPont:])
+	newLeafNode.Page.Records = leftRecords
+	leafNode.Page.Records = rightRecords
+
+	// prev <-> leafNode <-> next
+	// ->
+	// prev <-> newLeafNode <-> leafNode <-> next
+	prevPageID := leafNode.Page.PrevID
+	newLeafNode.Page.NextID = leafNode.Page.ID
+	leafNode.Page.PrevID = newLeafNode.Page.ID
+	if prevPageID != NoSiblingPageID {
+		prevPage, err := t.bufferPoolManager.FetchPage(prevPageID)
+		if err != nil {
+			return nil, err
+		}
+		prevNode := NewLeafNode(prevPage)
+		prevNode.Page.NextID = newLeafNode.Page.ID
+		newLeafNode.Page.PrevID = prevNode.Page.ID
+		t.bufferPoolManager.Flush(prevNode.Page)
+	}
+
+	return newLeafNode, nil
 }
 
 func (b *Tree) findLeafNode(key []byte, node Node) (*LeafNode, error) {
