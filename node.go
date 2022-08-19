@@ -91,6 +91,48 @@ func (b BaseNode) find(childrens []KeyValue, key []byte) *FindResult {
 	}
 }
 
+func (b BaseNode) rangeScan(childrens []KeyValue, startKey, endKey []byte) ([]KeyValue, bool) {
+	if len(childrens) == 0 {
+		return nil, false
+	}
+
+	hits := make([]KeyValue, 0, len(childrens))
+	isLastHit := false
+
+	for idx, record := range childrens {
+		startCmp := bytes.Compare(record.Key, startKey)
+		endCmp := bytes.Compare(record.Key, endKey)
+
+		switch {
+		// startKey == record
+		case startCmp == 0:
+			hits = append(hits, record)
+			if (len(childrens) - 1) == idx {
+				isLastHit = true
+			}
+
+		// startKey < record < endKey
+		case startCmp == 1 && endCmp == -1:
+			hits = append(hits, record)
+			if (len(childrens) - 1) == idx {
+				isLastHit = true
+			}
+
+		// endKey == record
+		case endCmp == 0:
+			hits = append(hits, record)
+			if (len(childrens) - 1) == idx {
+				isLastHit = true
+			}
+
+		default:
+			continue
+		}
+	}
+
+	return hits, isLastHit
+}
+
 type InsertResultType int
 
 const (

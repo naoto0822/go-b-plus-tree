@@ -57,6 +57,13 @@ func (l *LeafNode) Get(key []byte) (KeyValue, bool) {
 	}
 }
 
+// RangeScan ...
+func (l *LeafNode) RangeScan(startKey, endKey []byte) ([]KeyValue, bool) {
+	// only ASC
+	records, isLastHit := l.BaseNode.rangeScan(l.Page.Records, startKey, endKey)
+	return records, isLastHit
+}
+
 // Insert ...
 func (l *LeafNode) Insert(key, value []byte) error {
 	keyValue := NewKeyValue(key, value)

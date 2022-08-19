@@ -44,6 +44,42 @@ func (b *Tree) Get(key []byte) (KeyValue, error) {
 	return keyValue, nil
 }
 
+// RangeScan ...
+// TODO: DESC
+func (t *Tree) RangeScan(startKey, endKey []byte) ([]KeyValue, error) {
+	leafNode, err := t.findLeafNode(startKey, t.RootNode)
+	if err != nil {
+		return nil, err
+	}
+
+	keyValues, isLastHit := leafNode.RangeScan(startKey, endKey)
+	if !isLastHit {
+		return keyValues, nil
+	}
+
+	for isLastHit {
+		if leafNode.Page.NextID == NoSiblingPageID {
+			break
+		}
+
+		nextPage, err := t.bufferPoolManager.FetchPage(leafNode.Page.NextID)
+		if err != nil {
+			return nil, err
+		}
+		nextLeafNode := NewLeafNode(nextPage)
+
+		nextKeyValues, isNextLastHit := nextLeafNode.RangeScan(startKey, endKey)
+		if len(nextKeyValues) > 0 {
+			keyValues = append(keyValues, nextKeyValues...)
+		}
+
+		leafNode = nextLeafNode
+		isLastHit = isNextLastHit
+	}
+
+	return keyValues, nil
+}
+
 // Insert ...
 func (b *Tree) Insert(key, value []byte) error {
 	insertResult, err := b.insertChildNode(b.RootNode, key, value)

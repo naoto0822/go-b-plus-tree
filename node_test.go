@@ -83,3 +83,129 @@ func TestBaseNode_Find(t *testing.T) {
 		})
 	}
 }
+
+func TestBaseNode_RangeScan(t *testing.T) {
+	type args struct {
+		childrens []KeyValue
+		startKey  []byte
+		endKey    []byte
+	}
+
+	type want struct {
+		records   []KeyValue
+		isLastHit bool
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "no record",
+			args: args{
+				childrens: nil,
+				startKey:  []byte(`a`),
+				endKey:    []byte(`c`),
+			},
+			want: want{
+				records:   nil,
+				isLastHit: false,
+			},
+		},
+		{
+			name: "a <= (a, b) <= c",
+			args: args{
+				childrens: []KeyValue{
+					{Key: []byte(`a`), Value: []byte(`v_a`)},
+					{Key: []byte(`b`), Value: []byte(`v_b`)},
+				},
+				startKey: []byte(`a`),
+				endKey:   []byte(`c`),
+			},
+			want: want{
+				records: []KeyValue{
+					{Key: []byte(`a`), Value: []byte(`v_a`)},
+					{Key: []byte(`b`), Value: []byte(`v_b`)},
+				},
+				isLastHit: true,
+			},
+		},
+		{
+			name: "a <= (b, c) <= c",
+			args: args{
+				childrens: []KeyValue{
+					{Key: []byte(`b`), Value: []byte(`v_b`)},
+					{Key: []byte(`c`), Value: []byte(`v_c`)},
+				},
+				startKey: []byte(`a`),
+				endKey:   []byte(`c`),
+			},
+			want: want{
+				records: []KeyValue{
+					{Key: []byte(`b`), Value: []byte(`v_b`)},
+					{Key: []byte(`c`), Value: []byte(`v_c`)},
+				},
+				isLastHit: true,
+			},
+		},
+		{
+			name: "a <= (c, d, e) <= g",
+			args: args{
+				childrens: []KeyValue{
+					{Key: []byte(`c`), Value: []byte(`v_c`)},
+					{Key: []byte(`d`), Value: []byte(`v_d`)},
+					{Key: []byte(`e`), Value: []byte(`v_e`)},
+				},
+				startKey: []byte(`a`),
+				endKey:   []byte(`g`),
+			},
+			want: want{
+				records: []KeyValue{
+					{Key: []byte(`c`), Value: []byte(`v_c`)},
+					{Key: []byte(`d`), Value: []byte(`v_d`)},
+					{Key: []byte(`e`), Value: []byte(`v_e`)},
+				},
+				isLastHit: true,
+			},
+		},
+		{
+			name: "b <= (a, b, c, d, e) <= d",
+			args: args{
+				childrens: []KeyValue{
+					{Key: []byte(`a`), Value: []byte(`v_a`)},
+					{Key: []byte(`b`), Value: []byte(`v_b`)},
+					{Key: []byte(`c`), Value: []byte(`v_c`)},
+					{Key: []byte(`d`), Value: []byte(`v_d`)},
+					{Key: []byte(`e`), Value: []byte(`v_e`)},
+				},
+				startKey: []byte(`b`),
+				endKey:   []byte(`d`),
+			},
+			want: want{
+				records: []KeyValue{
+					{Key: []byte(`b`), Value: []byte(`v_b`)},
+					{Key: []byte(`c`), Value: []byte(`v_c`)},
+					{Key: []byte(`d`), Value: []byte(`v_d`)},
+				},
+				isLastHit: false,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseNode := BaseNode{}
+			gotRecord, gotIsNext := baseNode.rangeScan(tt.args.childrens, tt.args.startKey, tt.args.endKey)
+
+			if !reflect.DeepEqual(tt.want.records, gotRecord) {
+				t.Errorf("%s, want: %+v, got: %+v", tt.name, tt.want.records, gotRecord)
+			}
+
+			if tt.want.isLastHit != gotIsNext {
+				t.Errorf("%s, want: %v, got: %v", tt.name, tt.want.isLastHit, gotIsNext)
+			}
+		})
+	}
+
+}
