@@ -1,5 +1,9 @@
 # B+Tree implementation in Go
 
+[![CI](https://github.com/naoto0822/go-b-plus-tree/actions/workflows/ci.yml/badge.svg)](https://github.com/naoto0822/go-b-plus-tree/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/naoto0822/go-b-plus-tree)](https://goreportcard.com/report/github.com/naoto0822/go-b-plus-tree)
+[![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/naoto0822/go-b-plus-tree/blob/main/LICENSE)
+
 ## Overview
 
 > TODO
@@ -17,15 +21,44 @@
 
 ### Layer
 
-> TODO
+- `Tree`
+- `BufferPoolManager`
+- `BufferPool`
+- `DiskManager`
+
+```mermaid
+sequenceDiagram
+    participant T AS Tree
+    participant BPM AS BufferPoolManager
+	participant BP AS BufferPool
+	participant DM AS DiskManager
+
+    T->>DM: Handling `Node` and `Page`
+```
 
 ### Tree / Node
 
-> TODO
+- InternalNode
+	- Key and PageID
+- LeafNode
+	- Key and Value
+	- Connected horizontal nodes
+
+![node_tree](./docs/node_tree.png)
 
 ### Page Layout
 
-> TODO
+Using `gob` for serialization and deserialization.
+
+```go
+type Page struct {
+	ID       int64
+	NodeType NodeType
+	PrevID   int64
+	NextID   int64
+	Records  []KeyValue
+}
+```
 
 ## Usage
 
@@ -73,11 +106,12 @@ if err != nil {
 
 ### Slotted Page Layout
 
-> TODO
+- [CMU Database Systems - 03 Database Storage I (Fall 2018)](https://www.youtube.com/watch?v=uuX4PQXBeos)
+- [CMU Database Systems - 04 Database Storage II (Fall 2018)](https://www.youtube.com/watch?v=NXRgIsH83xE)
 
 ### Clock-Sweep
 
-> TODO
+- [CS 537 Notes, Section #20: Clock Algorithm, Thrashing](https://pages.cs.wisc.edu/~bart/537/lecturenotes/s20.html)
 
 ### Memcomparable Format
 
