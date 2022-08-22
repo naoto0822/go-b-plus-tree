@@ -6,7 +6,8 @@
 
 ## Overview
 
-> TODO
+`go-b-plus-tree` is B+Tree implemented in Go.
+It is a toy project, aimed at an InnoDB-like storage engine.
 
 ## Feature
 
