@@ -15,6 +15,7 @@ func (n *NodePrinter) print(node Node, bufferPoolManager *BufferPoolManager) err
 
 	if node.GetNodeType() == NodeTypeLeaf {
 		g.addEdge(node.String(), "", "")
+		fmt.Println(g)
 		return nil
 	}
 
@@ -81,6 +82,7 @@ func (e *edge) String() string {
 	return fmt.Sprintf("%v", e.node)
 }
 
+// TODO: when single leaf
 func (g *graph) String() string {
 	out := `digraph "" {
 		graph [fontname = "Ricty Bold"];
