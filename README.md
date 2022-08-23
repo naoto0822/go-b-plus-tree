@@ -119,6 +119,11 @@ if err != nil {
 - [MyRocks record format](https://github.com/facebook/mysql-5.6/wiki/MyRocks-record-format)
 - [pingcap/tidb bytes.go](https://github.com/pingcap/tidb/blob/master/util/codec/bytes.go)
 
+### Searching Min Key
+
+Max(now) -> Min(want)  
+https://github.com/naoto0822/go-b-plus-tree/blob/main/node.go#L79
+
 ### etc
 
 - [ ] arrange `Tree` reciever name
